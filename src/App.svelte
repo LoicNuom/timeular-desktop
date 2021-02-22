@@ -76,6 +76,7 @@
 		selectedTask = ''
 		contactProjects = []
 		projectsTask = []
+		timeslips = []
 	}
 
 	const handleSelectContact = async (evt) =>{
@@ -84,11 +85,9 @@
           freeAgentToken.access_token,
           selectedContact
         )).projects
-		console.log(contactProjects)
 	}
 
 	const handleSelectProject = async (evt) => {
-		console.log(evt.detail.value)
 		selectedContactProject = evt.detail.value
 		projectsTask = await (
         await listProjectTasks(freeAgentToken.access_token, selectedContactProject)
@@ -96,7 +95,6 @@
 	}
 
 	const handleSelectTask = async (evt) => {
-		console.log(evt.detail.value)
 		selectedTask = evt.detail.value
 
 		projectMatching[selectedProject] = {
@@ -113,7 +111,7 @@
 			e => e.activityId === selectedProject
 		)
 		timeslips = []
-		for (const entry of entries) {
+		for (const entry of activityEntry) {
 			const hours =
 			(new Date(entry.duration.stoppedAt).getTime() -
 				new Date(entry.duration.startedAt).getTime()) /
@@ -186,7 +184,7 @@
 					<Select items={projectsTask.map(c=>({value: c.url, label: c.name}))} selectedValue={selectedTask} on:select={handleSelectTask}></Select>
 					{/if}
 					{#if selectedTask}
-						<button>Show timeslips</button>
+						<button on:click={saveTimeslip}>Show timeslips</button>
 						{#each timeslips as timeslip}
 							<div>
 								{timeslip.dated_on} <br/>

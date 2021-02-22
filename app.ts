@@ -45,7 +45,7 @@ app.whenReady().then(() => {
 
   checkFreeAgentToken()
     .then(token => {
-      sleep(2000).then(() => {
+      sleep(4000).then(() => {
         console.log('got token:', token)
         win.webContents.send('freeAgentToken', JSON.stringify(token))
       })
