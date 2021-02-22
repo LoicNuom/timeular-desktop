@@ -3,6 +3,8 @@ const { checkFreeAgentToken, connectFreeAgent } = require('./freeAgent')
 const { app, BrowserWindow } = require('electron')
 const path = require('path')
 const { ipcMain } = require('electron')
+const fs = require('fs')
+const CORRESPONDANCE_PATH = 'exports/matching.json'
 
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms))
@@ -43,16 +45,7 @@ app.whenReady().then(() => {
     }
   })
 
-  checkFreeAgentToken()
-    .then(token => {
-      sleep(4000).then(() => {
-        console.log('got token:', token)
-        win.webContents.send('freeAgentToken', JSON.stringify(token))
-      })
-    })
-    .catch(err => {
-      console.log(err)
-    })
+  
 })
 
 app.on('reload', function () {
@@ -66,6 +59,32 @@ app.on('window-all-closed', function () {
   if (process.platform !== 'darwin') app.quit()
 })
 
+ipcMain.on('getFreeAgentToken', (event, arg) => {
+  checkFreeAgentToken()
+    .then(token => {
+      sleep(500).then(() => {
+        console.log('got token:', token)
+        event.reply('freeAgentToken', JSON.stringify(token))
+      })
+    })
+    .catch(err => {
+      console.log(err)
+    })
+})
+
+ipcMain.on('saveMatches', (event, arg) => {
+  fs.writeFileSync(
+    CORRESPONDANCE_PATH,
+    arg
+  )
+})
+
+ipcMain.on('getMatches', (event, arg)=>{
+  if (fs.existsSync(CORRESPONDANCE_PATH)) {
+    const file = fs.readFileSync(CORRESPONDANCE_PATH).toString()
+    event.reply('Matches',file)
+  }
+})
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and require them here.
 try {

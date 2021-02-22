@@ -6,7 +6,6 @@
 	const {ipcRenderer} = require('electron')
 	require('dotenv').config()
 
-	export let name: string;
 	let freeAgentToken: any ={}
 	let timeularToken: string = ''
 	let week = ''
@@ -21,8 +20,11 @@
 	let selectedContact: string = ''
 	let selectedContactProject: string = ''
 	let selectedTask: string = ''
-	const projectMatching = {}
+	let projectMatching = {}
 
+	const getFreeAgentToken = () =>{
+		ipcRenderer.send('getFreeAgentToken')
+	}
 	ipcRenderer.on('freeAgentToken',(EventTarget, message)=>{
 		console.log('plop',message)
 		freeAgentToken = JSON.parse(message)
@@ -65,18 +67,36 @@
 		)
 	}
 
-	const selectProject = (project: Activity) => (evt) => {
+	const selectProject = (project: Activity) => async (evt) => {
 		if(project.id === selectedProject){
 			selectedProject = null
 		}else{
 			selectedProject = project.id
 		}
-		selectedContact = ''
-		selectedContactProject = ''
-		selectedTask = ''
-		contactProjects = []
-		projectsTask = []
-		timeslips = []
+		if(projectMatching[project.id]){
+			selectedContact = projectMatching[project.id].contact
+			selectedContactProject = projectMatching[project.id].project
+			selectedTask = projectMatching[project.id].task
+			contactProjects =(await listFreeAgentContactProjects(
+				freeAgentToken.access_token,
+				selectedContact
+			)).projects
+			projectsTask = (
+				await listProjectTasks(freeAgentToken.access_token, selectedContactProject)
+			).tasks
+
+		}else{
+			selectedContact = ''
+			selectedContactProject = ''
+			selectedTask = ''
+			contactProjects = []
+			projectsTask = []
+			timeslips = []
+		}
+
+		if(!contacts){
+			getFreeAgentToken()
+		}
 	}
 
 	const handleSelectContact = async (evt) =>{
@@ -96,14 +116,14 @@
 
 	const handleSelectTask = async (evt) => {
 		selectedTask = evt.detail.value
-
-		projectMatching[selectedProject] = {
-			selectedContactProject,
-			selectedTask,
-      }
 	}
 
 	const saveTimeslip = async () =>{
+		projectMatching[selectedProject] = {
+			contact: selectedContact,
+			project: selectedContactProject,
+			task: selectedTask,
+        }
 		const user = (await getFreeAgentUSer(freeAgentToken.access_token)).user
       	const userID = user.url
 
@@ -126,10 +146,22 @@
 			comment: entry.note.text || '',
 			}
 			timeslips.push(timeslip)
-			//createFreeAgentTimeslip(freeAgentToken.access_token, timeslip)
+			createFreeAgentTimeslip(freeAgentToken.access_token, timeslip)
+			ipcRenderer.send('saveMatches', JSON.stringify(projectMatching, null,2))
 		}
 	}
 
+	const getMatches=() => {
+		ipcRenderer.send('getMatches')
+	}
+	ipcRenderer.on('Matches',(EventTarget, message)=>{
+		console.log(message)
+		projectMatching = JSON.parse(message)
+		console.log(projectMatching)
+	})
+
+	getMatches()
+	getFreeAgentToken()
 
 </script>
 <style>
@@ -142,12 +174,12 @@
 </style>
 <Tailwindcss />
 <ModeSwitcher />
-<main class="p-4 mx-auto text-center max-w-xl">
-	<h1 class="uppercase text-6xl leading-normal font-thin text-svelte">Hello {name}!</h1>
+<main class="p-4 mx-auto text-center max-w-6xl">
+	<h1 class="uppercase text-6xl leading-normal font-thin text-svelte">Save your timeslips to FreeAgent</h1>
 	<p class="custom-style">
-		Visit the
-		<a href="https://svelte.dev/tutorial" class="text-green-500 underline">Svelte tutorial</a>
-		to learn how to build Svelte apps.
+		This software take the times inputs from
+		<a href="https://timeular.com" class="text-green-500 underline">Timeular</a>
+		and saves them as Timeslips on Freeagent
 	</p>
 	<p>freeAgentToken {freeAgentToken.access_token}</p>
 
@@ -167,6 +199,10 @@
 				{#each projectList as project}
 					<div class="m-2 border-2 border-gray-500 p-2 hover:bg-gray-300 cursor-pointer {selectedProject === project.id ? 'bg-red-400' : ''} " on:click={selectProject(project)}>
 						<p>{project.name}</p>
+						{#if projectMatching[project.id]}
+							<p class="text-xs text-gray-500">Contact: {projectMatching[project.id].contact}</p>
+							<p class="text-xs text-gray-500">Task: {projectMatching[project.id].task}</p>
+						{/if}
 					</div>
 				{/each}
 			</div>
