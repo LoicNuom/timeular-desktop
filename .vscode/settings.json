@@ -1,0 +1,16 @@
+{
+    "workbench.colorCustomizations": {
+        "statusBar.background": "#ab0426",
+        "statusBar.border": "#ab0426",
+        "statusBar.foreground": "#e7e7e7",
+        "statusBarItem.hoverBackground": "#dd0531",
+        "tab.activeBorder": "#fa1b49",
+        "titleBar.activeBackground": "#ab0426",
+        "titleBar.activeForeground": "#e7e7e7",
+        "titleBar.border": "#ab0426",
+        "titleBar.inactiveBackground": "#ab042699",
+        "titleBar.inactiveForeground": "#e7e7e799"
+    },
+    "peacock.color": "#dd0531",
+    "window.title": "${dirty}${activeEditorShort}${separator}${rootName}${separator}${appName} ${separator} [Branch: master]"
+}
