@@ -4,7 +4,8 @@ const { app, BrowserWindow } = require('electron')
 const path = require('path')
 const { ipcMain } = require('electron')
 const fs = require('fs')
-const CORRESPONDANCE_PATH = 'exports/matching.json'
+const EXPORT_DIRECTORY = path.join(app.getPath('userData'),'exports')
+const CORRESPONDANCE_PATH = path.join(EXPORT_DIRECTORY,'matching.json')
 
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms))
@@ -25,7 +26,7 @@ function createWindow() {
   mainWindow.loadFile('public/index.html')
 
   // Open the DevTools.
-  mainWindow.webContents.openDevTools()
+  //mainWindow.webContents.openDevTools()
 
   return mainWindow
 }
@@ -33,7 +34,13 @@ function createWindow() {
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
+  console.log(EXPORT_DIRECTORY)
+  console.log(fs.promises.mkdir)
+  if(!fs.existsSync(EXPORT_DIRECTORY)){
+    await fs.promises.mkdir(EXPORT_DIRECTORY)
+  }
+
   let win = null
   win = createWindow()
 
@@ -48,9 +55,6 @@ app.whenReady().then(() => {
   
 })
 
-app.on('reload', function () {
-  console.log('window reloaded')
-})
 
 // Quit when all windows are closed, except on macOS. There, it's common
 // for applications and their menu bar to stay active until the user quits
@@ -60,7 +64,7 @@ app.on('window-all-closed', function () {
 })
 
 ipcMain.on('getFreeAgentToken', (event, arg) => {
-  checkFreeAgentToken()
+  checkFreeAgentToken(path.join(EXPORT_DIRECTORY, 'freeagentToken.json'))
     .then(token => {
       sleep(500).then(() => {
         console.log('got token:', token)

@@ -1,5 +1,5 @@
 {
-  "name": "svelte-ts-tailwind-app",
+  "name": "timeular2freeagent",
   "version": "1.0.0",
   "main": "app.ts",
   "scripts": {
@@ -10,6 +10,9 @@
     "start:electron": "electron .",
     "validate": "svelte-check",
     "build:electron": "electron-builder build"
+  },
+  "build": {
+    "appId": "com.timeular2freeagent"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^17.0.0",
