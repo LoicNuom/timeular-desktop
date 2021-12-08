@@ -2,10 +2,14 @@
 	import Select from 'svelte-select';
 	import ModeSwitcher from './ModeSwitcher.svelte';
 	import Tailwindcss from './Tailwindcss.svelte';
-	import {Activity, Contact, Entry, ContactProject, listActivities, listFreeAgentContacts, previousWeekEntries, timeularSignIn, weeklyEntries, listFreeAgentContactProjects, Task, listProjectTasks, Timeslip, getFreeAgentUSer, createFreeAgentTimeslip } from './timeular';
+	import {Activity, Contact, Entry, ContactProject, listActivities, listFreeAgentContacts, previousWeekEntries, timeularSignIn, weeklyEntries, listFreeAgentContactProjects, Task, listProjectTasks, Timeslip, getFreeAgentUSer, createFreeAgentTimeslip, entriesSinceDate } from './timeular';
 	const electron = require('electron')
 	require('dotenv').config()
 
+	
+
+	let date = new Date()
+	let dateString = date.toISOString()
 	let freeAgentToken: any ={}
 	let timeularToken: string = ''
 	let week = ''
@@ -47,6 +51,12 @@
 		if (week === 'Last Week') {
 			previousWeekEntries(timeularToken).then((entries)=>processEntries(entries))
 		}
+	}
+
+	const dateSelected = () => {
+		date = new Date(dateString)
+		console.log(date)
+		entriesSinceDate(timeularToken, date).then((entries)=>processEntries(entries))
 	}
 
 	const processEntries= (e) => {
@@ -119,37 +129,60 @@
 		selectedTask = evt.detail.value
 	}
 
-	const saveTimeslip = async () =>{
+	const showTimeslips = async () => {
 		projectMatching[selectedProject] = {
 			contact: selectedContact,
 			project: selectedContactProject,
 			task: selectedTask,
         }
 		const user = (await getFreeAgentUSer(freeAgentToken.access_token)).user
-      	const userID = user.url
+    const userID = user.url
 
 		const activityEntry = entries.filter(
 			e => e.activityId === selectedProject
 		)
 		timeslips = []
 		for (const entry of activityEntry) {
+			console.log(entry)
 			const hours =
 			(new Date(entry.duration.stoppedAt).getTime() -
 				new Date(entry.duration.startedAt).getTime()) /
 			(1000 * 60 * 60)
 			const dated_on = new Date(entry.duration.startedAt)
+
+			let regex = /<{{([^}}>][^}}>]?)*}}>/gm
+
+			let comment = entry.note.text || ''
+			comment = comment.replaceAll(regex, '')
+			console.log(comment)
+			const mentions = entry.note.mentions.map(m=>'@'+m.label)
+			const tags = entry.note.tags.map(t=>'#'+t.label)
+
+			console.log({Text, mentions, tags})
+
+			comment = comment ? comment +  ' ' + mentions.join(' ') : mentions.join(' ')
+			comment = comment ? comment + ' ' + tags.join(' ') : tags.join(' ')
+
+
 			const timeslip: Timeslip = {
-			userID,
-			taskID: selectedTask,
-			projectID: selectedContactProject,
-			hours,
-			dated_on,
-			comment: entry.note.text || '',
+				userID,
+				taskID: selectedTask,
+				projectID: selectedContactProject,
+				hours,
+				dated_on,
+				comment,
 			}
 			timeslips.push(timeslip)
-			createFreeAgentTimeslip(freeAgentToken.access_token, timeslip)
-			electron.ipcRenderer.send('saveMatches', JSON.stringify(projectMatching, null,2))
 		}
+	}
+
+	const saveTimeslip = async () => {
+		for (const timeslip of timeslips) {
+			createFreeAgentTimeslip(freeAgentToken.access_token, timeslip)
+		}
+		electron.ipcRenderer.send('saveMatches', JSON.stringify(projectMatching, null,2))
+		selectedProject = null
+		timeslips = []
 	}
 
 	const getMatches=() => {
@@ -186,13 +219,14 @@
 
 	<div class="container text-left m-4">
 		<section>
-			<p>Which week do you want to save to Freeangent?</p>
+			<p>Start date</p>
 			<div>
-				<select bind:value={week} on:change={weekSelected}>
+				<input type="date" bind:value={dateString} on:change={dateSelected} />
+				<!-- <select bind:value={week} on:change={weekSelected}>
 					<option value=""></option>
 					<option value="Current Week">Current Week</option>
 					<option value="Last Week">Last Week</option>
-				</select>
+				</select> -->
 			</div>
 		</section>
 		<section class="grid grid-container">
@@ -221,13 +255,17 @@
 					<Select items={projectsTask.map(c=>({value: c.url, label: c.name}))} selectedValue={selectedTask} on:select={handleSelectTask}></Select>
 					{/if}
 					{#if selectedTask}
-						<button on:click={saveTimeslip}>Show timeslips</button>
+						<button on:click={showTimeslips}>Show timeslips</button>
 						{#each timeslips as timeslip}
 							<div>
 								{timeslip.dated_on} <br/>
-								{timeslip.hours}
+								{timeslip.hours} <br/>
+								{timeslip.comment}
 							</div>
 						{/each}
+						{#if timeslips.length >0}
+							<button on:click={saveTimeslip}>Save timeslips</button>
+						{/if}
 					{/if}
 				</div>
 				{/if}

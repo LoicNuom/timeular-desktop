@@ -26,8 +26,20 @@ export class Entry {
   }
   note: {
     text: string | null
-    tags: string[]
-    mentions: string[]
+    tags: {
+      id: string
+      key: string
+      label: string
+      scope: string
+      spaceId: string
+    }[]
+    mentions: {
+      id: string
+      key: string
+      label: string
+      scope: string
+      spaceId: string
+    }[]
   }
 }
 
@@ -93,6 +105,28 @@ export async function listActivities(token: string) {
     console.error(err)
     return err.message
   }
+}
+
+export async function entriesSinceDate(token: string, startDate: Date) {
+  const start = DateTime.fromMillis(startDate.getTime()).toISO()
+  .split('+')[0]
+  const end = DateTime.fromMillis(Date.now())
+    .endOf('week')
+    .toISO()
+    .split('+')[0]
+
+  console.log(`start ${start}, end ${end}`)
+  const timeframe = `${start}/${end}`
+  const response = await axios.get(
+    timeularendpoint + 'time-entries' + '/' + timeframe,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  )
+
+  return response.data
 }
 
 export async function weeklyEntries(token: string) {
@@ -197,7 +231,7 @@ export async function getFreeAgentUSer(token: string) {
 
 export async function listProjectTasks(token: string, projectId: string) {
   const response = await axios.get(
-    `${freeagentConfig.baseURL}tasks?project=${encodeURIComponent(projectId)}`,
+    `${freeagentConfig.baseURL}tasks?project=${encodeURIComponent(projectId)}&per_page=100`,
     {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -228,6 +262,7 @@ export async function createFreeAgentTimeslip(token: string, timeslipData: Times
       dated_on: `${timeslipData.dated_on.getFullYear()}-${
         timeslipData.dated_on.getMonth() + 1
       }-${timeslipData.dated_on.getDate()}`,
+      comment: timeslipData.comment
     },
     {
       headers: {
