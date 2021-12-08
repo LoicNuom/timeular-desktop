@@ -19,6 +19,7 @@ function createWindow() {
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       nodeIntegration: true,
+      //contextIsolation: true
     },
   })
 
@@ -36,7 +37,7 @@ function createWindow() {
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(async () => {
   console.log(EXPORT_DIRECTORY)
-  console.log(fs.promises.mkdir)
+  //console.log(fs.promises.mkdir)
   if(!fs.existsSync(EXPORT_DIRECTORY)){
     await fs.promises.mkdir(EXPORT_DIRECTORY)
   }
@@ -64,6 +65,7 @@ app.on('window-all-closed', function () {
 })
 
 ipcMain.on('getFreeAgentToken', (event, arg) => {
+  console.log('received token request')
   checkFreeAgentToken(path.join(EXPORT_DIRECTORY, 'freeagentToken.json'))
     .then(token => {
       sleep(500).then(() => {

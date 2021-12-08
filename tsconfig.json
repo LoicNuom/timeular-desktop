@@ -1,6 +1,9 @@
 {
   "extends": "@tsconfig/svelte/tsconfig.json",
-
+  "target": "es5",
+  "noImplicitAny": true,
+  "sourceMap": true,
+  "moduleResolution": "node",
   "include": ["src/**/*"],
-  "exclude": ["node_modules/*", "__sapper__/*", "public/*"],
+  "exclude": ["node_modules/*", "__sapper__/*", "public/*"]
 }

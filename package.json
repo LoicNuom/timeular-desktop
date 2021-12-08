@@ -9,7 +9,8 @@
     "start:desktop": "deskgap .",
     "start:electron": "electron .",
     "validate": "svelte-check",
-    "build:electron": "electron-builder build"
+    "build:electron": "electron-builder build",
+    "tauri": "tauri"
   },
   "build": {
     "appId": "com.timeular2freeagent"
@@ -19,11 +20,11 @@
     "@rollup/plugin-node-resolve": "^11.0.0",
     "@rollup/plugin-typescript": "^8.0.0",
     "@tsconfig/svelte": "^1.0.10",
+    "@types/dotenv": "^8.2.0",
     "@types/express": "^4.17.11",
     "@types/luxon": "^1.25.2",
     "@types/node": "^14.14.31",
     "autoprefixer": "^10.0.4",
-    "deskgap": "^0.2.0",
     "electron": "^11.2.3",
     "electron-builder": "^22.9.1",
     "electron-reloader": "^1.2.0",
@@ -47,7 +48,9 @@
     "luxon": "^1.26.0",
     "open": "^7.4.1",
     "rollup-plugin-css-only": "^3.0.0",
+    "rollup-plugin-node-polyfills": "^0.2.1",
     "sirv-cli": "^1.0.0",
-    "svelte-select": "^3.17.0"
+    "svelte-select": "^3.17.0",
+    "tauri": "^0.14.1"
   }
 }

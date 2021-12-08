@@ -3,8 +3,8 @@
 	import ModeSwitcher from './ModeSwitcher.svelte';
 	import Tailwindcss from './Tailwindcss.svelte';
 	import {Activity, Contact, Entry, ContactProject, listActivities, listFreeAgentContacts, previousWeekEntries, timeularSignIn, weeklyEntries, listFreeAgentContactProjects, Task, listProjectTasks, Timeslip, getFreeAgentUSer, createFreeAgentTimeslip } from './timeular';
-	const electron = require('electron')
-	require('dotenv').config()
+	//const electron = require('electron')
+	//require('dotenv').config()
 
 	let freeAgentToken: any ={}
 	let timeularToken: string = ''
@@ -22,8 +22,8 @@
 	let selectedTask: string = ''
 	let projectMatching = {}
 
+	/*
 	const getFreeAgentToken = () =>{
-		console.log('calling for token')
 		electron.ipcRenderer.send('getFreeAgentToken')
 	}
 	electron.ipcRenderer.on('freeAgentToken',(EventTarget, message)=>{
@@ -31,7 +31,7 @@
 		freeAgentToken = JSON.parse(message)
 
 		listFreeAgentContacts(freeAgentToken.access_token).then(res=>contacts = res.contacts.filter((c: any) => c.organisation_name))
-	})
+	})*/
 			
 
 	const TIMEULAR_API_KEY = "NTMyNl8zYzdiZWNhODM5ODg0MjliOTM0N2ZlN2MzZWJjZDVkYQ==" //process.env.TIMEULAR_API_KEY
@@ -95,9 +95,11 @@
 			timeslips = []
 		}
 
+		/*
 		if(!contacts){
 			getFreeAgentToken()
 		}
+		*/
 	}
 
 	const handleSelectContact = async (evt) =>{
@@ -148,10 +150,11 @@
 			}
 			timeslips.push(timeslip)
 			createFreeAgentTimeslip(freeAgentToken.access_token, timeslip)
-			electron.ipcRenderer.send('saveMatches', JSON.stringify(projectMatching, null,2))
+			// electron.ipcRenderer.send('saveMatches', JSON.stringify(projectMatching, null,2))
 		}
 	}
 
+	/*
 	const getMatches=() => {
 		electron.ipcRenderer.send('getMatches')
 	}
@@ -160,9 +163,10 @@
 		projectMatching = JSON.parse(message)
 		console.log(projectMatching)
 	})
-
+	
 	getMatches()
 	getFreeAgentToken()
+	*/
 
 </script>
 <style>
